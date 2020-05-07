@@ -1,4 +1,5 @@
 import UIKit
+
  
 public class FABView: UIStackView {
     
@@ -32,7 +33,7 @@ public class FABView: UIStackView {
         alignment = .trailing
         spacing = 16
         clipsToBounds = true
-        stackView.delegate = self
+//        stackView.delegate = self
     }
     
  
@@ -58,3 +59,4 @@ public class FABView: UIStackView {
         ])
     }
 }
+
