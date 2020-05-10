@@ -7,7 +7,6 @@
 
 import UIKit
 
-
 class FABStackView: UIStackView {
 
     private var fabSecondaryButtons: [FABSecondary] = [FABSecondary]()

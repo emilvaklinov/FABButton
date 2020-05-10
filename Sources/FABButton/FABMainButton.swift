@@ -5,9 +5,9 @@
 //  Created by Emil Vaklinov on 07/05/2020.
 //
 import UIKit
- 
+
 class FABMainButton: UIButton {
- 
+
     override init(frame: CGRect) {
         super.init(frame: .zero)
         configure()
@@ -34,5 +34,4 @@ class FABMainButton: UIButton {
         layer.shadowOpacity = 0.5
         layer.cornerRadius = 25.0
     }
- 
 }

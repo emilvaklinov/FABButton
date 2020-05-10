@@ -1,17 +1,26 @@
 import UIKit
 
-
-class FABStackView: UIStackView {
-
-    private var fabSecondaryButtons: [FABSecondary] = [FABSecondary]()
-    private var secondaryButtons: [UIView] = [UIView]()
-    private var secondaryViews: [UIView] = [UIView]()
-
-    weak var delegate: FABSecondaryButtonDelegate?
+public class FABView: UIStackView {
+    
+    private let stackView = FABStackView(frame: .zero)
+    private var mainButton = FABMainButton(frame: .zero)
+    private var isMenuOnScreen: Bool = false
+    
+    weak public var delegate: FABSecondaryButtonDelegate?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        configureStackView()
+        
+        configure()
+    }
+    
+    
+    public init(buttonImage: UIImage?) {
+        super.init(frame: .zero)
+        
+        mainButton.setImage(buttonImage, for: .normal)
+        mainButton.addTarget(self, action: #selector(mainButtonAction), for: .touchUpInside)
+        configure()
     }
     
     
@@ -20,105 +29,61 @@ class FABStackView: UIStackView {
     }
     
     
-    private func configureStackView() {
+    private func configure() {
+        configureContainer()
+        layoutUI()
+    }
+    
+    
+    private func configureContainer() {
         translatesAutoresizingMaskIntoConstraints = false
         distribution = .fill
         axis = .vertical
         alignment = .trailing
-        spacing = 12
+        spacing = 16
         clipsToBounds = true
+        stackView.delegate = self
+    }
+    
+
+    @objc private func mainButtonAction() {
+        isMenuOnScreen ? stackView.dismissButtons() : stackView.showButtons()
+        isMenuOnScreen.toggle()
     }
     
     
-    private func configureSecondaryButtons() {
-        for secondary in fabSecondaryButtons {
-            let secondaryView = FABSecondaryButton(fabSecondary: secondary)
-            secondaryView.delegate = self
-            secondaryViews.append(secondaryView)
-        }
-        
-        setSecondaryButtonsArray()
-    }
-    
-    
-    private func setSecondaryButtonsArray() {
-        for view in secondaryViews {
-            secondaryButtons.append(view)
-        }
+    private func layoutUI() {
+        addArrangedSubview(stackView)
+        addArrangedSubview(mainButton)
+
+        NSLayoutConstraint.activate([
+            mainButton.trailingAnchor.constraint(equalTo: trailingAnchor),
+            mainButton.bottomAnchor.constraint(equalTo: bottomAnchor),
+            mainButton.widthAnchor.constraint(equalToConstant: 50),
+            mainButton.heightAnchor.constraint(equalToConstant: 50),
+            
+            stackView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            stackView.topAnchor.constraint(equalTo: topAnchor),
+            stackView.widthAnchor.constraint(equalToConstant: 150)
+        ])
     }
 }
 
-
-// MARK: - Public methods
-extension FABStackView {
+public extension FABView {
     func addSecondaryButtonWith(image: UIImage, labelTitle: String, action: @escaping () -> ()) {
-        let component: FABSecondary
-        component.image = image
-        component.title = labelTitle
-        component.action = action
-        fabSecondaryButtons.append(component)
+        stackView.addSecondaryButtonWith(image: image, labelTitle: labelTitle, action: action)
     }
     
     
     func setFABButton() {
-        configureSecondaryButtons()
-    }
-    
-    
-    func showButtons() {
-        guard let view = secondaryButtons.last else {
-            setSecondaryButtonsArray()
-            return
-        }
-        
-        secondaryButtons.removeLast()
-        
-        addArrangedSubview(view)
-        
-        NSLayoutConstraint.activate([
-            view.leadingAnchor.constraint(equalTo: leadingAnchor),
-            view.trailingAnchor.constraint(equalTo: trailingAnchor),
-            view.heightAnchor.constraint(equalToConstant: 34)
-        ])
-        
-        view.transform = CGAffineTransform.identity.scaledBy(x: 0.001, y: 0.001)
-        UIView.animate(withDuration: 0.075, animations: {
-            view.transform = CGAffineTransform.identity.scaledBy(x: 1.1, y: 1.1)
-        }) { finished in
-            UIView.animate(withDuration: 0.03, animations: {
-                view.transform = CGAffineTransform.identity.scaledBy(x: 0.9, y: 0.9)
-            }) { finished in
-                UIView.animate(withDuration: 0.03, animations: {
-                    view.transform = CGAffineTransform.identity
-                }) { finished in
-                    self.showButtons()
-                }
-            }
-        }
-    }
-    
-    
-    func dismissButtons() {
-        guard let view = secondaryButtons.last else {
-            setSecondaryButtonsArray()
-            return
-        }
-        
-        secondaryButtons.removeLast()
-        
-        UIView.animate(withDuration: 0.075, animations: {
-            view.transform = CGAffineTransform.identity.scaledBy(x: 0.001, y: 0.001)
-        }) { finished in
-            view.removeFromSuperview()
-            self.dismissButtons()
-        }
+        stackView.setFABButton()
     }
 }
 
 
-extension FABStackView: FABSecondaryButtonDelegate {
-    func secondaryActionForButton(_ action: @escaping () -> ()) {
+extension FABView: FABSecondaryButtonDelegate {
+    public func secondaryActionForButton(_ action: @escaping () -> ()) {
+        isMenuOnScreen.toggle()
         delegate?.secondaryActionForButton(action)
-        dismissButtons()
     }
 }
